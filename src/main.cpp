@@ -14,15 +14,35 @@
  */
 
 #include <Arduino.h>
+#include <WiFi.h>
 
-#include "memory.h"
+#include "memory_stats.h"
+#include "wifi_conn.h"
 
 void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 3000) { delay(10); }  // wait for USB-CDC host, cap at 3s
+
   printMemoryReport();
+
+  WiFi.onEvent(onWiFiEvent);  // register BEFORE begin()
+
+  uint8_t attempts = 0;
+  while (!wifiConnect(CONNECT_TIMEOUT_MS) && ++attempts < CONNECT_MAX_ATTEMPTS) {
+    Serial.printf("[WiFi] Retry %u after backoff...\n", attempts);
+    WiFi.disconnect(true);       // clear stale state before retrying
+    delay(2000 * attempts);      // linear backoff
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[WiFi] Giving up — rebooting in 5s.");
+    delay(5000);
+    ESP.restart();
+  }
 }
 
 void loop() {
-  delay(10000);  // nothing to do; report is printed once at boot
+  wifiWatchdog();   // non-blocking; auto-reconnect does the heavy lifting
+
+  delay(1000);
 }
