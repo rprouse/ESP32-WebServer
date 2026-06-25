@@ -1,7 +1,9 @@
 # ESP32 Web Server
 
-The WiFi SSID and password are stored in `include/secrets.h` which is git ignored. Copy
-`include/secrets example.h` and fill it in.
+## Configuration and Secrets
+
+Configuration settings and the WiFi SSID and password are stored in `include/secrets.h`
+which is git ignored. Copy `include/secrets example.h` and fill it in.
 
 ## ESP32 NodeMCU v1.1
 

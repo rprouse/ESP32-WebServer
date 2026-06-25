@@ -18,6 +18,23 @@
 
 #include "memory_stats.h"
 #include "wifi_conn.h"
+#include "ntp.h"
+
+void printTimes()
+{
+  time_t now = time(nullptr); // UTC epoch — the canonical instant, always
+
+  struct tm utc;
+  gmtime_r(&now, &utc); // UTC, ignores TZ entirely
+  struct tm local;
+  localtime_r(&now, &local); // local, applies TZ + DST
+
+  char buf[64];
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &utc);
+  Serial.printf("[UTC] %s\r\n", buf);
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &local);
+  Serial.printf("[Local] %s\r\n", buf); // %Z prints MST or MDT correctly
+}
 
 void setup() {
   Serial.begin(115200);
@@ -39,6 +56,9 @@ void setup() {
     delay(5000);
     ESP.restart();
   }
+
+  initTime();
+  printTimes();
 }
 
 void loop() {
