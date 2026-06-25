@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 static void printSize(const char* label, uint64_t bytes) {
-  Serial.printf("%-22s %9.2f KB   (%.2f MB)\r\n",
+  Serial.printf("%s %.2f KB (%.2f MB)\r\n",
                 label, bytes / 1024.0, bytes / (1024.0 * 1024.0));
 }
 
@@ -24,7 +24,7 @@ void printMemoryReport() {
   printSize("[Flash Size]", ESP.getFlashChipSize());
   Serial.printf("[Flash Speed] %d MHz\r\n",
                 ESP.getFlashChipSpeed() / 1000000);
-  Serial.printf("[Flash Mode] %d  (0=QIO 1=QOUT 2=DIO 3=DOUT 4=FAST 5=SLOW)\r\n",
+  Serial.printf("[Flash Mode] %d (0=QIO 1=QOUT 2=DIO 3=DOUT 4=FAST 5=SLOW)\r\n",
                 ESP.getFlashChipMode());
   Serial.println();
 
