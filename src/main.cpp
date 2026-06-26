@@ -15,10 +15,45 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 #include "memory_stats.h"
 #include "wifi_conn.h"
 #include "ntp.h"
+
+AsyncWebServer server(80);
+
+String processor(const String& var) {
+  if (var == "UTC") {
+    time_t now = time(nullptr); // UTC epoch — the canonical instant, always
+
+    struct tm utc;
+    gmtime_r(&now, &utc); // UTC, ignores TZ entirely
+
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &utc);
+    return String(buf);
+  }
+  if (var == "LOCAL") {
+    time_t now = time(nullptr); // UTC epoch — the canonical instant, always
+
+    struct tm local;
+    localtime_r(&now, &local); // local, applies TZ + DST
+
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &local);
+    return String(buf);
+  }
+  return String();  // unknown placeholder -> empty
+}
+
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html><html><body>
+  <p>UTC: %UTC%</p>
+  <p>Local: %LOCAL%</p>
+</body></html>
+)rawliteral";
 
 void printTimes()
 {
@@ -59,6 +94,11 @@ void setup() {
 
   initTime();
   printTimes();
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/html", index_html, processor);
+  });
+  server.begin();
 }
 
 void loop() {
