@@ -50,8 +50,11 @@ String processor(const String& var) {
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html><html><body>
-  <p>UTC: %UTC%</p>
-  <p>Local: %LOCAL%</p>
+  <h1>ESP32 Web Server</h1>
+  <h2>UTC Time</h2>
+  <p>%UTC%</p>
+  <h2>Local Time</h2>
+  <p>%LOCAL%</p>
 </body></html>
 )rawliteral";
 
@@ -96,7 +99,7 @@ void setup() {
   printTimes();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, processor);
+    request->send(200, "text/html", index_html, processor);
   });
   server.begin();
 }
