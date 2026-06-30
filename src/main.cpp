@@ -78,6 +78,10 @@ void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 3000) { delay(10); }  // wait for USB-CDC host, cap at 3s
 
+#if !STATUS_LED_IS_RGB
+  pinMode(STATUS_LED_PIN, OUTPUT);  // plain LED needs an output pin
+#endif
+
   printMemoryReport();
 
   WiFi.onEvent(onWiFiEvent);  // register BEFORE begin()
@@ -104,8 +108,21 @@ void setup() {
   server.begin();
 }
 
-void loop() {
+void loop()
+{
+  // Toggle the onboard LED each second so we can confirm loop() is running
+  // even when serial output isn't visible.
+  static bool on = false;
+  on = !on;
+#if STATUS_LED_IS_RGB
+  rgbLedWrite(STATUS_LED_PIN, 0, 0, on ? 16 : 0); // dim blue toggle
+#else
+  digitalWrite(STATUS_LED_PIN, on);
+#endif
+
   wifiWatchdog();   // non-blocking; auto-reconnect does the heavy lifting
 
   delay(1000);
+
+  Serial.println(on ? "PING" : "PONG");
 }
