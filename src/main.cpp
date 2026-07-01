@@ -14,12 +14,11 @@
  */
 
 #include <Arduino.h>
-#include <WiFi.h>
 
 #include "memory_stats.h"
-#include "wifi_conn.h"
 #include "ntp.h"
 #include "web.h"
+#include "wifi_conn.h"
 
 void printTimes()
 {

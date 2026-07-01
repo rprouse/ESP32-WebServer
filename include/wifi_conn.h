@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <WiFi.h>
 
 // Robust WiFi connect + auto-reconnect helpers (see src/wifi.cpp).
 // NOTE: named wifi_conn.h, NOT wifi.h, so it doesn't shadow the ESP32
