@@ -128,3 +128,6 @@ void wifiWatchdog() {
     ESP.restart();
   }
 }
+
+void wifiInit() {
+}

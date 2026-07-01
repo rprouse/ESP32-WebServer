@@ -15,48 +15,11 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 
 #include "memory_stats.h"
 #include "wifi_conn.h"
 #include "ntp.h"
-
-AsyncWebServer server(80);
-
-String processor(const String& var) {
-  if (var == "UTC") {
-    time_t now = time(nullptr); // UTC epoch — the canonical instant, always
-
-    struct tm utc;
-    gmtime_r(&now, &utc); // UTC, ignores TZ entirely
-
-    char buf[64];
-    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &utc);
-    return String(buf);
-  }
-  if (var == "LOCAL") {
-    time_t now = time(nullptr); // UTC epoch — the canonical instant, always
-
-    struct tm local;
-    localtime_r(&now, &local); // local, applies TZ + DST
-
-    char buf[64];
-    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &local);
-    return String(buf);
-  }
-  return String();  // unknown placeholder -> empty
-}
-
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE html><html><body>
-  <h1>ESP32 Web Server</h1>
-  <h2>UTC Time</h2>
-  <p>%UTC%</p>
-  <h2>Local Time</h2>
-  <p>%LOCAL%</p>
-</body></html>
-)rawliteral";
+#include "web.h"
 
 void printTimes()
 {
@@ -83,29 +46,10 @@ void setup() {
 #endif
 
   printMemoryReport();
-
-  WiFi.onEvent(onWiFiEvent);  // register BEFORE begin()
-
-  uint8_t attempts = 0;
-  while (!wifiConnect(CONNECT_TIMEOUT_MS) && ++attempts < CONNECT_MAX_ATTEMPTS) {
-    Serial.printf("[WiFi] Retry %u after backoff...\n", attempts);
-    WiFi.disconnect(true);       // clear stale state before retrying
-    delay(2000 * attempts);      // linear backoff
-  }
-
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("[WiFi] Giving up — rebooting in 5s.");
-    delay(5000);
-    ESP.restart();
-  }
-
+  wifiInit();
   initTime();
   printTimes();
-
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/html", index_html, processor);
-  });
-  server.begin();
+  webServerSetup();
 }
 
 void loop()
