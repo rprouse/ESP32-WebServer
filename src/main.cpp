@@ -32,7 +32,7 @@ void printTimes()
 
   char buf[64];
   strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &utc);
-  Serial.printf("[UTC] %s\r\n", buf);
+  Serial.printf("[UTC]   %s\r\n", buf);
   strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &local);
   Serial.printf("[Local] %s\r\n", buf); // %Z prints MST or MDT correctly
 }
@@ -54,6 +54,8 @@ void setup() {
 
 void loop()
 {
+  wifiWatchdog();   // non-blocking; auto-reconnect does the heavy lifting
+
   // Toggle the onboard LED each second so we can confirm loop() is running
   // even when serial output isn't visible.
   static bool on = false;
@@ -64,9 +66,12 @@ void loop()
   digitalWrite(STATUS_LED_PIN, on);
 #endif
 
-  wifiWatchdog();   // non-blocking; auto-reconnect does the heavy lifting
+  // Print the current time every ten seconds so we can confirm NTP is working
+  static unsigned long lastPrint = 0;
+  if (millis() - lastPrint > 10000) {
+    lastPrint = millis();
+    printTimes();
+  }
 
   delay(1000);
-
-  Serial.println(on ? "PING" : "PONG");
 }

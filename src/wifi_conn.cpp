@@ -130,4 +130,18 @@ void wifiWatchdog() {
 }
 
 void wifiInit() {
+  WiFi.onEvent(onWiFiEvent);  // register BEFORE begin()
+
+  uint8_t attempts = 0;
+  while (!wifiConnect(CONNECT_TIMEOUT_MS) && ++attempts < CONNECT_MAX_ATTEMPTS) {
+    Serial.printf("[WiFi] Retry %u after backoff...\n", attempts);
+    WiFi.disconnect(true);       // clear stale state before retrying
+    delay(2000 * attempts);      // linear backoff
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[WiFi] Giving up — rebooting in 5s.");
+    delay(5000);
+    ESP.restart();
+  }
 }
